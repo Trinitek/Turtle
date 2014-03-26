@@ -6,34 +6,23 @@ main:
 
 
 ; ###
-; ### Compare strings
+; ### Reverse strings
 
-.compareStrings_1:
+.reverseStrings:
 	mov		si, stringData.str1
-	mov		di, stringData.str2
-	call	string.match
-	
-	jc		.stringMatches_1		; if str1==str2 then goto .stringMatches_1
-	mov		si, stringData.noMatch	; else
+	mov		di, stringData.strEmpty
+	call	string.reverse
+	mov		si, di
 	call	string.teletype
-	jmp		.compareStrings_2
-	
-.stringMatches_1:
-	mov		si, stringData.match
+	mov		si, stringData.strNewLine
 	call	string.teletype
 	
-.compareStrings_2:
-	mov		si, stringData.str2
-	mov		di, stringData.str3
-	call	string.match
-	
-	jc		.stringMatches_2		; if str2 == str3 then goto .stringMatches_2
-	mov		si, stringData.noMatch	; else
+	mov		si, stringData.str3
+	mov		di, stringData.strEmpty
+	call	string.reverse
+	mov		si, di
 	call	string.teletype
-	jmp		.getStringLength
-	
-.stringMatches_2:
-	mov		si, stringData.match
+	mov		si, stringData.strNewLine
 	call	string.teletype
 	
 
@@ -70,21 +59,26 @@ exit:
 
 stringData:
 .hello:
-	db		"Hello world!", 0x0D, 0x0A, 0x00
+	db		"Hello world!", 0x0D, 0x0A, 0
 .str1:
-	db		"This is a string", 0x00
+	db		"This is a string", 0
 .str2:
-	db		"This is a string", 0x00
+	db		"This is a string", 0
 .str3:
-	db		"This is another string!", 0x00
+	db		"This is another string!", 0
 .noMatch:
-	db		"String doesn't match.", 0x0D, 0x0A, 0x00
+	db		"String doesn't match.", 0x0D, 0x0A, 0
 .match:
-	db		"String matches!", 0x0D, 0x0A, 0x00
+	db		"String matches!", 0x0D, 0x0A, 0
 .length16:
-	db		"Length is 16 characters", 0x0D, 0x0A, 0x00
+	db		"Length is 16 characters", 0x0D, 0x0A, 0
 .length23:
-	db		"Length is 23 characters", 0x0D, 0x0A, 0x00
+	db		"Length is 23 characters", 0x0D, 0x0A, 0
+	
+.strNewLine:
+	db		0x0D, 0x0A, 0
+.strEmpty:
+	db		64 dup 0
 
 
 include		"string.asm"

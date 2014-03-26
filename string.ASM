@@ -18,7 +18,7 @@
 
 .teletype.nextChar:
 	mov		al, [si]
-	cmp		al, 0x00			; if char==0 then return
+	cmp		al, 0				; if char==0 then return
 	jz		.teletype.return
 	int		0x10				; write to screen
 	inc		si					; next character
@@ -36,7 +36,7 @@
 	;
 	; param:
 	;	si = pointer to primary string to be compared against, null terminated
-	;	bx = pointer to secondary string to be compared, null terminated
+	;	di = pointer to secondary string to be compared, null terminated
 	; return:
 	;	(flag) carry = set if match, clear if not.
 .match:
@@ -49,7 +49,7 @@
 	mov		al, [di]
 	cmp		ah, al				; if char1 != char2 then goto notEqual
 	jne		.match.notEqual
-	cmp		al, 0x00			; elseif char2==0 then goto equal (end of strings)
+	cmp		al, 0				; elseif char2==0 then goto equal (end of strings)
 	je		.match.equal
 	inc		si					; else next character
 	inc		di					; ...
@@ -80,11 +80,11 @@
 	;	al = number of characters
 .getLength:
 	push	si
-	mov		al, 0x00
+	mov		al, 0
 	
 .getLength.nextChar:
 	mov		ah, [si]
-	cmp		ah, 0x00			; if char==0 then goto return
+	cmp		ah, 0				; if char==0 then goto return
 	je		.getLength.return
 	inc		al					; else charCount++
 	inc		si					; next character
@@ -92,4 +92,50 @@
 	
 .getLength.return:
 	pop		si
+	ret
+	
+	
+; ###
+; ### PROC: "reverse"
+	; Reverses the string, so that the last character is first and vice versa.
+	;
+	; param:
+	;	si = pointer to string, null terminated
+	;	di = pointer to new string, null terminated
+	; return
+	;	di = pointer to new string, null terminated
+.reverse:
+	push	ax
+	push	cx
+	push	si
+	push	di
+	
+	xor		cx, cx
+	
+.reverse.gotoEnd:
+	mov		al, [si]
+	cmp		al, 0
+	je		.reverse.nextChar.setup
+	inc		si
+	inc		cl
+	jmp		.reverse.gotoEnd
+
+.reverse.nextChar.setup:
+	dec		si
+	
+.reverse.nextChar:
+	mov		al, [si]
+	mov		[di], al
+	dec		si
+	inc		di
+	loop	.reverse.nextChar
+	
+.reverse.appendTerminator:
+	mov		[di], byte 0
+	
+.reverse.return:
+	pop		di
+	pop		si
+	pop		cx
+	pop		ax
 	ret
