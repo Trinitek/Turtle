@@ -4,7 +4,7 @@
 	ret
 
 
-; ###
+; ### ### ###
 ; ### PROC: "teletype"
 	; Prints the string using the TTY interrupt feature, scrolling and advancing the cursor as needed.
 	;
@@ -30,7 +30,7 @@
 	ret
 
 
-; ###
+; ### ### ###
 ; ### PROC: "match"
 	; Determines if the two strings are identical.
 	;
@@ -70,7 +70,7 @@
 	ret
 
 
-; ###
+; ### ### ###
 ; ### PROC: "getLength"
 	; Determines the length of the string in number of characters, excluding the null termination character
 	;
@@ -95,13 +95,13 @@
 	ret
 	
 	
-; ###
+; ### ### ###
 ; ### PROC: "reverse"
 	; Reverses the string, so that the last character is first and vice versa.
 	;
 	; param:
 	;	si = pointer to string, null terminated
-	;	di = pointer to new string, null terminated
+	;	di = pointer to new string destination
 	; return
 	;	di = pointer to new string, null terminated
 .reverse:
@@ -110,9 +110,9 @@
 	push	si
 	push	di
 	
-	xor		cx, cx
+	xor		cx, cx				; clear cx for use as for-loop counter
 	
-.reverse.gotoEnd:
+.reverse.gotoEnd:				; count number of characters in source string, excluding null terminator
 	mov		al, [si]
 	cmp		al, 0
 	je		.reverse.nextChar.setup
@@ -121,17 +121,17 @@
 	jmp		.reverse.gotoEnd
 
 .reverse.nextChar.setup:
-	dec		si
+	dec		si					; character before null terminator
 	
-.reverse.nextChar:
-	mov		al, [si]
+.reverse.nextChar:				; for (i=getLength(si); i>0; i--)
+	mov		al, [si]			; [di] <== [si]
 	mov		[di], al
-	dec		si
+	dec		si					; next character
 	inc		di
 	loop	.reverse.nextChar
 	
 .reverse.appendTerminator:
-	mov		[di], byte 0
+	mov		[di], byte 0		; add null terminator to the end
 	
 .reverse.return:
 	pop		di
@@ -139,3 +139,66 @@
 	pop		cx
 	pop		ax
 	ret
+	
+	
+; ### ### ###
+; ### PROC: "numberToString"
+	; Translates a number into a null terminated string value
+	;
+	; param:
+	;	ax = number
+	;	di = pointer to new string destination
+	; return:
+	;	di = pointer to new string, null terminated
+.numberToString:
+	push	ax
+	push	bx
+	push	dx
+	push	si
+	push	di
+	
+	mov		bx, 10				; constant used to divide by
+	mov		si, .numberToString.rawString
+								; sandbox area for reversing string before returning it
+	xor		dx, dx				; clear dx for doubleword division
+	
+	cmp		ax, 0				; if (number==0) then goto numberIsZero
+	jz		.numberToString.numberIsZero
+	jmp		.numberToString.extractLeastSignificant
+								; else goto extractLeastSignificant
+	
+.numberToString.numberIsZero:
+	mov		[di], byte '0'		; set string to '0'
+	inc		di
+	mov		[di], byte 0		; append null terminator ... and return
+	jmp		.numberToString.return
+	
+.numberToString.extractLeastSignificant:
+	div		bx					; ax=ax/10, dx=remainder -- remainder will be the least significant number off the rest of it
+	
+	add		dl, 48				; convert single digit remainder into ASCII code
+	mov		[si], dl			; write character to string
+	inc		si
+	mov		dl, 0				; sanitize dl before dividing again
+	
+	cmp		ax, 0				; a quotient of 0 means that there are no more numbers to extract
+	jz		.numberToString.flipString
+	jmp		.numberToString.extractLeastSignificant
+
+.numberToString.flipString:
+	mov		si, .numberToString.rawString
+								; no need to append a null terminator, sandbox is 6 null chars, number is max 5 chars.
+								; si = pointer to sandbox area, di = destination passed by program
+	call	.reverse			; reverse it!
+	
+.numberToString.return:
+	pop		di
+	pop		si
+	pop		dx
+	pop		bx
+	pop		ax
+	ret
+
+.numberToString.rawString:
+	db		6 dup (0)
+	
