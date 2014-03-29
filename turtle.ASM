@@ -1,4 +1,9 @@
 	org		0x100					; MS-DOS program
+	
+	jmp		main
+
+	include	"string.asm"
+	include	"keyboard.asm"
 
 main:
 	mov		si, stringData.hello
@@ -6,46 +11,38 @@ main:
 
 
 ; ###
-; ### Convert numbers into strings
-.numbersToStrings:
+; ### Get keyboard code and display the code to the screen
+.getKeyboardCode:
+	keyboard.getKey
+	cmp		al, 0
+	jz		.getKeyboardCode
+	mov		al, ah
+	mov		ah, 0
+	
 	mov		di, stringData.strEmpty
-	mov		ax, 65535
 	call	string.numberToString
 	mov		si, di
 	call	string.teletype
 	
-	mov		si, stringData.strOctothorpe
+	mov		si, stringData.strSpace
 	call	string.teletype
+	jmp		.getKeyboardCode
+	
 
 exit:
 	mov		ax, 0x4C00
 	int		0x21
-
+	
 
 stringData:
 .hello:
 	db		"Hello world!", 0x0D, 0x0A, 0
-.str1:
-	db		"This is a string", 0
-.str2:
-	db		"This is a string", 0
-.str3:
-	db		"This is another string!", 0
-.noMatch:
-	db		"String doesn't match.", 0x0D, 0x0A, 0
-.match:
-	db		"String matches!", 0x0D, 0x0A, 0
-.length16:
-	db		"Length is 16 characters", 0x0D, 0x0A, 0
-.length23:
-	db		"Length is 23 characters", 0x0D, 0x0A, 0
 	
 .strOctothorpe:
 	db		"#", 0
 .strNewLine:
 	db		0x0D, 0x0A, 0
+.strSpace:
+	db		" ", 0
 .strEmpty:
 	db		64 dup (0)
-
-
-include		"string.asm"

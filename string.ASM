@@ -186,8 +186,8 @@
 	jmp		.numberToString.extractLeastSignificant
 
 .numberToString.flipString:
+	mov		[si], byte 0		; append null terminator
 	mov		si, .numberToString.rawString
-								; no need to append a null terminator, sandbox is 6 null chars, number is max 5 chars.
 								; si = pointer to sandbox area, di = destination passed by program
 	call	.reverse			; reverse it!
 	

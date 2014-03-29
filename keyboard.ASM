@@ -1,26 +1,19 @@
 	; String library
 	; NAMESPACE: "keyboard"
-	string:
+	keyboard:
 	ret
+
+	; MACRO: "getKey"
+	; return:
+	;	ah = BIOS scan code
+	;	al = ASCII character
+	;	(flag) zf = clear if key available, set otherwise
+macro keyboard.getKey
+{
+	mov		ah, 0x10			; 0x16 - get enhanced keyboard character
+	int		0x16
+}
 
 	; PROC: "teletype"
 	; param:
 	;	si = string pointer
-.teletype:
-	push	ax
-	push	si
-
-	mov	ah, 0x0E	; 0x10 - teletype output
-
-.teletype.nextChar:
-	mov	al, [si]
-	cmp	al, 0x00	; if char==0 then return
-	jz	.teletype.return
-	int	0x10		; write character
-	inc	si		; next...
-	jmp	.teletype.nextChar
-
-.teletype.return:
-	pop	si
-	pop	ax
-	ret
