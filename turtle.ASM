@@ -1,4 +1,4 @@
-	org		0x100					; MS-DOS program
+	org		0x100				; MS-DOS program
 	
 	jmp		main
 
@@ -8,26 +8,26 @@
 main:
 	mov		si, stringData.hello
 	call	string.teletype
-
-
-; ###
-; ### Get keyboard code and display the code to the screen
-.getKeyboardCode:
-	keyboard.getKey
-	cmp		al, 0
-	jz		.getKeyboardCode
-	mov		al, ah
-	mov		ah, 0
 	
+	mov		si, stringData.inputPrompt
+	call	string.teletype
+	
+	mov		al, 12				; string length
+	mov		ah, 1				; enable echo
 	mov		di, stringData.strEmpty
-	call	string.numberToString
+	call	keyboard.inputString
+	
+	mov		si, stringData.strNewLine
+	call	string.teletype
+	
+	mov		si, stringData.outputPrompt
+	call	string.teletype
+	
 	mov		si, di
 	call	string.teletype
 	
-	mov		si, stringData.strSpace
-	call	string.teletype
-	jmp		.getKeyboardCode
-	
+	jmp		exit
+
 
 exit:
 	mov		ax, 0x4C00
@@ -37,6 +37,16 @@ exit:
 stringData:
 .hello:
 	db		"Hello world!", 0x0D, 0x0A, 0
+	
+.bios:
+	db		"BIOS=", 0
+.ascii:
+	db		"ASCII=", 0
+	
+.inputPrompt:
+	db		"Input: ", 0
+.outputPrompt:
+	db		"Output: ", 0
 	
 .strOctothorpe:
 	db		"#", 0

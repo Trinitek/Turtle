@@ -3,8 +3,22 @@
 	string:
 	ret
 
+; ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+; ### MACRO: "putChar"
+	; Places a character at the current cursor position and advances the cursor
+	;
+	; param:
+	;	al = character to display at current position
+macro string.putChar
+{
+	push	ax
+	mov		ah, 0x0E
+	int		0x10
+	pop		ax
+}
 
-; ### ### ###
+
+; ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 ; ### PROC: "teletype"
 	; Prints the string using the TTY interrupt feature, scrolling and advancing the cursor as needed.
 	;
@@ -30,7 +44,7 @@
 	ret
 
 
-; ### ### ###
+; ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 ; ### PROC: "match"
 	; Determines if the two strings are identical.
 	;
@@ -70,7 +84,7 @@
 	ret
 
 
-; ### ### ###
+; ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 ; ### PROC: "getLength"
 	; Determines the length of the string in number of characters, excluding the null termination character
 	;
@@ -95,7 +109,7 @@
 	ret
 	
 	
-; ### ### ###
+; ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 ; ### PROC: "reverse"
 	; Reverses the string, so that the last character is first and vice versa.
 	;
@@ -141,7 +155,7 @@
 	ret
 	
 	
-; ### ### ###
+; ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
 ; ### PROC: "numberToString"
 	; Translates a number into a null terminated string value
 	;
