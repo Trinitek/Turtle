@@ -9,12 +9,12 @@
 	;
 	; param:
 	;	al = character to display at current position
+	; destroyed:
+	;	ah
 macro string.putChar
 {
-	push	ax
 	mov		ah, 0x0E
 	int		0x10
-	pop		ax
 }
 
 
