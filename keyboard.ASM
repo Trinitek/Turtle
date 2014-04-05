@@ -1,5 +1,6 @@
 	; String library
 	; NAMESPACE: "keyboard"
+	; REQUIRES: "string"
 	keyboard:
 	ret
 
