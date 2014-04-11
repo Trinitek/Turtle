@@ -74,21 +74,6 @@ macro keyboard.getKey
 .inputString.nextIteration:
 	loop	.inputString.getNextKey
 
-.inputString.backspace:
-	cmp		dx, di				; beginning of string?
-	je		.inputString.nextIteration
-	dec		di					; previous position in buffer
-	
-	cmp		bl, 0				; echo enabled?
-	jz		.inputString.nextIteration
-	string.putChar				; backspace cursor
-	mov		al, ' '
-	string.putChar				; blank that character
-	mov		al, 0x08
-	string.putChar				; and backspace again
-	
-	jmp		.inputString.nextIteration
-
 .inputString.appendTerminator:
 	mov		al, 0
 	mov		[di], al
@@ -100,4 +85,24 @@ macro keyboard.getKey
 	pop		bx
 	pop		ax
 	ret
+	
+.inputString.backspace:
+	cmp		dx, di				; beginning of string?
+	je		.inputString.getNextKey
+								; act like nothing ever happened
+	
+								; else...
+	dec		di					; previous position in buffer
+	
+	cmp		bl, 0				; echo enabled?
+	jz		.inputString.offsetCounter
+	string.putChar				; backspace cursor
+	mov		al, ' '
+	string.putChar				; blank that character
+	mov		al, 0x08
+	string.putChar				; and backspace again
+	
+.inputString.offsetCounter:
+	inc		cx
+	jmp		.inputString.getNextKey
 	

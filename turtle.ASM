@@ -12,6 +12,7 @@
 	start.yPos	equ 12
 	promptColor	equ 0x1F		; white on blue text
 	fieldColor	equ 0x2F		; white on green text
+	turtleFace	equ 0x02		; filled smiley face
 
 ; ==============================
 ; === ENTRY POINT ==============
@@ -63,7 +64,7 @@ createScreen:
 		mov		cursor.xPos, start.xPos
 		mov		cursor.yPos, start.yPos
 		screen.text.setCursorPosition
-		mov		al, [data_turtle.face]
+		mov		al, turtleFace
 		string.putChar
 	
 	call	showHelp
@@ -76,7 +77,7 @@ createScreen:
 main:
 	; get command string from keyboard
 	; ==============================
-	mov		al, 8				; 23 max characters
+	mov		al, 8				; 8 max characters
 	mov		ah, 1				; echo enabled
 	mov		di, data_str.buffer	; pointer to string buffer
 	call	keyboard.inputString
@@ -152,7 +153,28 @@ handler:
 		; TODO
 		ret
 	.paint:
-		; TODO
+		mov		al, byte [data_turtle.paintToggle]
+		cmp		al, 0
+		jnz		.paint.disable
+		
+		.paint.enable:				; toggle bit to 1
+		mov		byte [data_turtle.paintToggle], 1
+		call	clearMessageArea	; clear message line
+		mov		cursor.xPos, 0		; "Paint enabled"
+		mov		cursor.yPos, 23
+		screen.text.setCursorPosition
+		mov		si, data_str.paintOn
+		call	string.teletype
+		ret
+		
+		.paint.disable:				; toggle bit to 0
+		mov		byte [data_turtle.paintToggle], 0
+		call	clearMessageArea	; clear message line
+		mov		cursor.xPos, 0		; "paint disabled"
+		mov		cursor.yPos, 23
+		screen.text.setCursorPosition
+		mov		si, data_str.paintOff
+		call	string.teletype
 		ret
 
 exit:
@@ -169,13 +191,28 @@ exit:
 ; === PROCEDURE SECTION ========
 ; ==============================
 
+clearMessageArea:
+pusha
+
+	mov		cursor.xPos, 0		; position at 0, 23
+	mov		cursor.yPos, 23
+	screen.text.setCursorPosition
+	
+	mov		al, ' '
+	mov		bl, promptColor
+	mov		cx, 40
+	screen.text.setCharacter	; clear prompt line
+
+popa
+ret
+
 showHelp:
 pusha
 
 	mov		cursor.xPos, 0		; position at 0, 23
 	mov		cursor.yPos, 23
-	
 	screen.text.setCursorPosition
+	
 	mov		si, data_str.help	; show help message
 	call	string.teletype
 	
@@ -189,6 +226,7 @@ pusha
 	mov		cursor.xPos, 0
 	mov		cursor.yPos, 24
 	screen.text.setCursorPosition
+	
 	mov		al, ' '
 	mov		bl, promptColor
 	mov		cx, 40
@@ -197,6 +235,7 @@ pusha
 	mov		cursor.xPos, 0		; position at 0, 24
 	mov		cursor.yPos, 24
 	screen.text.setCursorPosition
+	
 	mov		al, '>'
 	string.putChar				; display carat
 	
@@ -216,8 +255,8 @@ data_turtle:
 		db		?
 	.yPos:
 		db		?
-	.face:
-		db		0x02				; filled smiley face
+	.paintToggle:
+		db		0
 
 data_command:
 	.up:
