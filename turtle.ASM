@@ -1,10 +1,41 @@
+; ===
+; === VIRTUAL TURTLE
+; === Blake Burgess
+; === March - April 2014
+; ===
+; === Control an on-screen turtle by giving it commands: left, right, up, down, and paint.
+; ===
+; === The program features simple command processing and collision detection, and uses a 40x25 text mode.
+; === Because it is designed to work in both MS-DOS and MikeOS, it includes string parsing functions
+; === already, so the program does not have to rely solely on the MikeOS API system calls.
+; ===
+; === For this custom library, I devised a scheme that allows me to selectively pick which procedures to
+; === import from each included source file. This means that I can minimize unnecessary program space that
+; === is wasted to unused procedures. It uses the Flat Assembler's macro functions to accomplish this;
+; === therefore, this program will not compile under the Net Assembler without modifications.
+; ===
+
 	org		0x100				; MS-DOS program
 	
 	jmp		start
 
+; ==============================
+; === INCLUDES AND SYMBOLS =====
+; ==============================
+
+	; Only need to import the procedures necessary. Macros within the includes can be used without
+	; importing them first.
+	
+	macro import function {function}
+	
 	include	"screen.asm"
 	include "string.asm"
+		import	string.teletype
+		import	string.match
+	
 	include "keyboard.asm"
+		import	keyboard.inputString
+		import	keyboard.waitForKey
 	
 	cursor.xPos	equ dl
 	cursor.yPos	equ dh
@@ -12,6 +43,7 @@
 	start.yPos	equ 12
 	promptColor	equ 0x1F		; white on blue text
 	fieldColor	equ 0x2F		; white on green text
+	paintColor	equ 0x4F		; white on red text
 	turtleFace	equ 0x02		; filled smiley face
 
 ; ==============================
@@ -60,7 +92,7 @@ createScreen:
 		pop		cx
 		loop	.fillPrompt.nextLine
 		
-	.createTurtle:
+	.createTurtle:					; create turtle at start position
 		mov		cursor.xPos, start.xPos
 		mov		cursor.yPos, start.yPos
 		screen.text.setCursorPosition
@@ -141,17 +173,129 @@ main:
 	
 handler:
 	.goUp:
-		; TODO
+		mov		al, byte [data_turtle.yPos]
+		cmp		al, 0
+		jz		@f					; collision detection
+		
+		mov		cursor.xPos, byte [data_turtle.xPos]
+		mov		cursor.yPos, byte [data_turtle.yPos]
+		screen.text.setCursorPosition
+		
+		mov		al, ' '				; erase old face
+		string.putChar
+		
+		mov		al, byte [data_turtle.yPos]
+		dec		al					; save new cursor position
+		mov		[data_turtle.yPos], al
+		
+		mov		cursor.yPos, al		; update new cursor position on screen
+		mov		cursor.xPos, byte [data_turtle.xPos]
+		screen.text.setCursorPosition
+		
+		call	paintPixel			; paint pixel if enabled
+		
+		mov		al, turtleFace		; display new face
+		string.putChar
 		ret
+		
+		@@:
+		call	clearMessageArea
+		call	showBump
+		ret
+		
 	.goDown:
-		; TODO
+		mov		al, byte [data_turtle.yPos]
+		cmp		al, 22
+		jz		@f					; collision detection
+		
+		mov		cursor.xPos, byte [data_turtle.xPos]
+		mov		cursor.yPos, byte [data_turtle.yPos]
+		screen.text.setCursorPosition
+		
+		mov		al, ' '				; erase old face
+		string.putChar
+		
+		mov		al, byte [data_turtle.yPos]
+		inc		al					; save new cursor position
+		mov		[data_turtle.yPos], al
+		
+		mov		cursor.yPos, al		; update new cursor position on screen
+		mov		cursor.xPos, byte [data_turtle.xPos]
+		screen.text.setCursorPosition
+		
+		call	paintPixel			; paint pixel if enabled
+		
+		mov		al, turtleFace		; display new face
+		string.putChar
 		ret
+		
+		@@:
+		call	clearMessageArea
+		call	showBump
+		ret
+		
 	.goLeft:
-		; TODO
+		mov		al, byte [data_turtle.xPos]
+		cmp		al, 0
+		jz		@f					; collision detection
+		
+		mov		cursor.xPos, byte [data_turtle.xPos]
+		mov		cursor.yPos, byte [data_turtle.yPos]
+		screen.text.setCursorPosition
+		
+		mov		al, ' '				; erase old face
+		string.putChar
+		
+		mov		al, byte [data_turtle.xPos]
+		dec		al					; save new cursor position
+		mov		[data_turtle.xPos], al
+		
+		mov		cursor.xPos, al		; update new cursor position on screen
+		mov		cursor.yPos, byte [data_turtle.yPos]
+		screen.text.setCursorPosition
+		
+		call	paintPixel			; paint pixel if enabled
+		
+		mov		al, turtleFace		; display new face
+		string.putChar
 		ret
+		
+		@@:
+		call	clearMessageArea
+		call	showBump
+		ret
+		
 	.goRight:
-		; TODO
+		mov		al, byte [data_turtle.xPos]
+		cmp		al, 39
+		jz		@f					; collision detection
+		
+		mov		cursor.xPos, byte [data_turtle.xPos]
+		mov		cursor.yPos, byte [data_turtle.yPos]
+		screen.text.setCursorPosition
+		
+		mov		al, ' '				; erase old face
+		string.putChar
+		
+		mov		al, byte [data_turtle.xPos]
+		inc		al					; save new cursor position
+		mov		[data_turtle.xPos], al
+		
+		mov		cursor.xPos, al		; update new cursor position on screen
+		mov		cursor.yPos, byte [data_turtle.yPos]
+		screen.text.setCursorPosition
+		
+		call	paintPixel			; paint pixel if enabled
+		
+		mov		al, turtleFace		; display new face
+		string.putChar
 		ret
+		
+		@@:
+		call	clearMessageArea
+		call	showBump
+		ret
+		
 	.paint:
 		mov		al, byte [data_turtle.paintToggle]
 		cmp		al, 0
@@ -177,6 +321,7 @@ handler:
 		call	string.teletype
 		ret
 
+; ==========
 exit:
 	.restoreScreen:
 		mov		di, data_state.screenMode
@@ -191,6 +336,23 @@ exit:
 ; === PROCEDURE SECTION ========
 ; ==============================
 
+paintPixel:
+pusha
+
+	mov		al, byte [data_turtle.paintToggle]
+	cmp		al, 0				; if paint is toggled off, break
+	jz		@f
+	
+	mov		cx, 1				; else, set background color
+	mov		bl, paintColor
+	screen.text.setCharacter
+	
+	@@:
+	
+popa
+ret
+
+; ==========
 clearMessageArea:
 pusha
 
@@ -206,6 +368,21 @@ pusha
 popa
 ret
 
+; ==========
+showBump:
+pusha
+
+	mov		cursor.xPos, 0		; position at 0, 23
+	mov		cursor.yPos, 23
+	screen.text.setCursorPosition
+	
+	mov		si, data_str.bump	; show bump message
+	call	string.teletype
+	
+popa
+ret
+
+; ==========
 showHelp:
 pusha
 
@@ -218,7 +395,8 @@ pusha
 	
 popa
 ret
-	
+
+; ==========	
 showPrompt:
 pusha
 
@@ -252,9 +430,9 @@ data_state:
 
 data_turtle:
 	.xPos:
-		db		?
+		db		start.xPos
 	.yPos:
-		db		?
+		db		start.yPos
 	.paintToggle:
 		db		0
 
@@ -283,8 +461,5 @@ data_str:
 		db		"Paint toggled off", 0
 	.bump:
 		db		"Bump! Hit a wall", 0
-
-	.newLine:
-		db		0x0D, 0x0A, 0
 	.buffer:
 		db		10 dup (0)

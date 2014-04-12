@@ -1,7 +1,6 @@
 	; Screen library
 	; NAMESPACE: "screen"
 	screen:
-	ret
 	
 	; GLOBAL SYMBOLS
 	
@@ -14,9 +13,6 @@ screen.mode.gfx.ega_midres	equ 0x0E	; 16 colors, 640x200
 screen.mode.gfx.ega_hires	equ 0x10	; 4 colors, 640x350
 screen.mode.gfx.vga_hires	equ 0x12	; 16 colors, 640x480
 screen.mode.gfx.vga_lowres	equ 0x13	; 256 colors, 320x200
-
-
-
 
 
 ; ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
@@ -46,9 +42,6 @@ macro screen.getMode
 	mov		ah, 0x0F
 	int		0x10
 }
-
-
-
 
 
 	; SECTION: "text"
@@ -133,9 +126,6 @@ macro screen.text.getCharacter
 	mov		ah, 0x08
 	int		0x10
 }
-
-
-
 
 
 	; SECTION: "gfx"
