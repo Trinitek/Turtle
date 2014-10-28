@@ -15,7 +15,7 @@
 ; === therefore, this program will not compile under the Net Assembler without modifications.
 ; ===
 
-	org		32768				; MS-DOS program
+	org		32768				; MikeOS program
 	
 	jmp		start
 
