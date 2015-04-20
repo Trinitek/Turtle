@@ -1,4 +1,4 @@
-	; String library
+	; Keyboard library
 	; NAMESPACE: "keyboard"
 	; REQUIRES: "string"
 	keyboard:
