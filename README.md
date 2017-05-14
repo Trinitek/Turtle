@@ -1,6 +1,6 @@
-####Turtle
+# Turtle
 
-######Virtual turtle for MS-DOS and MikeOS
+## Virtual turtle for MS-DOS and MikeOS
 
 Control an onscreen turtle by giving it commands -- left, right, up, down, and paint.
 
